@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Products{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">Manage Products</h1>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="alert alert-info">
+          {% for message in messages %}
+            <p>{{ message }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <!-- Upload CSV -->
+    <div class="card mb-4">
+        <div class="card-header"><strong>Upload Products via CSV</strong></div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('admin_inventory.upload_products_csv') }}" enctype="multipart/form-data">
+                <div class="form-group">
+                    <input type="file" name="csv_file" class="form-control-file" accept=".csv" required>
+                </div>
+                <button type="submit" class="btn btn-secondary">Upload</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add New Product Form -->
+    <div class="card mb-4">
+        <div class="card-header"><strong>Add New Product</strong></div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('admin_inventory.add_product') }}">
+                <div class="form-row">
+                    <div class="form-group col-md-4">
+                        <input type="text" name="product_name" class="form-control" placeholder="Product Name" required>
+                    </div>
+                    <!-- Brand Selection -->
+                    <div class="form-group col-md-2">
+                        <select name="brand_id" class="form-control mb-1">
+                            <option value="">Select Brand</option>
+                            {% for brand in brands %}
+                                <option value="{{ brand.brand_id }}">{{ brand.brand_name }}</option>
+                            {% endfor %}
+                        </select>
+                        <input type="text" name="new_brand" class="form-control" placeholder="Or enter new brand">
+                    </div>
+
+                    <!-- Category Selection -->
+                    <div class="form-group col-md-2">
+                        <select name="category_id" class="form-control mb-1">
+                            <option value="">Select Category</option>
+                            {% for cat in categories %}
+                                <option value="{{ cat.category_id }}">{{ cat.category_name }}</option>
+                            {% endfor %}
+                        </select>
+                        <input type="text" name="new_category" class="form-control" placeholder="Or enter new category">
+                    </div>
+
+                    
+                    <div class="form-group col-md-2">
+                        <select name="volume_id" class="form-control" required>
+                            <option value="">Volume (ml)</option>
+                            {% for vol in volumes %}
+                                <option value="{{ vol.volume_id }}">{{ vol.volume_ml }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group col-md-2">
+                        <input type="number" step="0.01" name="price" class="form-control" placeholder="Price" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-success">Add Product</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Search -->
+    <div class="form-inline mb-3">
+        <input type="text" id="productSearchInput" class="form-control mr-2" placeholder="Search products by name...">
+        <button class="btn btn-primary mr-2" id="searchBtn">Search</button>
+        <button class="btn btn-secondary" id="clearBtn">Clear</button>
+    </div>
+
+    <!-- Product Table -->
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Name</th>
+                    <th>Brand</th>
+                    <th>Category</th>
+                    <th>Volume</th>
+                    <th>Price</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="productsTableBody">
+                {% for product in products %}
+                <form method="POST" action="{{ url_for('admin_inventory.edit_product', product_id=product.product_id) }}">
+                    <tr data-name="{{ product.product_name | lower }}">
+                        <td><input type="text" class="form-control" name="product_name" value="{{ product.product_name }}"></td>
+                        <td>
+                            <select name="brand_id" class="form-control">
+                                {% for brand in brands %}
+                                    <option value="{{ brand.brand_id }}" {% if brand.brand_id == product.brand_id %}selected{% endif %}>{{ brand.brand_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td>
+                            <select name="category_id" class="form-control">
+                                {% for cat in categories %}
+                                    <option value="{{ cat.category_id }}" {% if cat.category_id == product.category_id %}selected{% endif %}>{{ cat.category_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td>
+                            <select name="volume_id" class="form-control">
+                                {% for vol in volumes %}
+                                    <option value="{{ vol.volume_id }}" {% if vol.volume_id == product.volume_id %}selected{% endif %}>{{ vol.volume_ml }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td><input type="number" step="0.01" name="price" class="form-control" value="{{ product.price_history[-1].price if product.price_history else '' }}"></td>
+                        <td class="d-flex">
+                            <button type="submit" class="btn btn-sm btn-primary mr-2">💾</button>
+                    </form>
+                    <form method="POST" action="{{ url_for('admin_inventory.delete_product', product_id=product.product_id) }}">
+                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">🗑️</button>
+                    </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const searchInput = document.getElementById("productSearchInput");
+    const searchBtn = document.getElementById("searchBtn");
+    const clearBtn = document.getElementById("clearBtn");
+
+    function filterRows() {
+        const query = searchInput.value.toLowerCase().trim();
+        const rows = document.querySelectorAll("#productsTableBody tr");
+
+        rows.forEach(row => {
+            const productNameInput = row.querySelector("input[name='product_name']");
+            const productName = productNameInput ? productNameInput.value.toLowerCase() : "";
+            row.style.display = productName.includes(query) ? "" : "none";
+        });
+    }
+
+    searchBtn.addEventListener("click", filterRows);
+    searchInput.addEventListener("input", filterRows);
+    searchInput.addEventListener("keypress", function (e) {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            filterRows();
+        }
+    });
+
+    clearBtn.addEventListener("click", () => {
+        searchInput.value = "";
+        document.querySelectorAll("#productsTableBody tr").forEach(row => row.style.display = "");
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Inventory{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">Inventory</h1>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="alert alert-info">
+          {% for message in messages %}
+            <p>{{ message }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <!-- Search and Filters -->
+    <form method="GET" action="{{ url_for('inventory.inventory') }}" class="form-inline mb-4">
+        <input type="text" name="search" id="searchInput" class="form-control mr-2" placeholder="Search products..." value="{{ request.args.get('search', '') }}">
+        <select name="category" class="form-control mr-2">
+            <option value="">All Categories</option>
+            {% for cat in categories %}
+                <option value="{{ cat.category_id }}" {% if request.args.get('category') == cat.category_id|string %}selected{% endif %}>{{ cat.category_name }}</option>
+            {% endfor %}
+        </select>
+        <select name="brand" class="form-control mr-2">
+            <option value="">All Brands</option>
+            {% for brand in brands %}
+                <option value="{{ brand.brand_id }}" {% if request.args.get('brand') == brand.brand_id|string %}selected{% endif %}>{{ brand.brand_name }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-primary">Filter</button>
+    </form>
+
+    <!-- Inventory Table Form -->
+    <form method="POST" action="{{ url_for('inventory.bulk_update_inventory') }}">
+        <table class="table table-striped">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Product</th>
+                    <th>Brand</th>
+                    <th>Category</th>
+                    <th>Volume (ml)</th>
+                    <th>Current Qty</th>
+                    <th>Update Qty</th>
+                    <th>Last Updated</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="inventoryTableBody">
+                {% for product in stock_items %}
+                {% set stock_data = product.stock[0] if product.stock else None %}
+                {% set quantity = stock_data.quantity if stock_data else 0 %}
+                <tr data-name="{{ product.product_name | lower }}" {% if quantity < 10 %}class="table-danger"{% elif quantity < 25 %}class="table-warning"{% endif %}>
+                    <td>{{ product.product_name }}</td>
+                    <td>{{ product.brand.brand_name }}</td>
+                    <td>{{ product.category.category_name }}</td>
+                    <td>{{ product.volume.volume_ml }}</td>
+                    <td>{{ quantity }}</td>
+                    <td>
+                        {% if current_user.role in ['admin', 'manager'] %}
+                        <input type="number" name="quantity[{{ product.product_id }}]" class="form-control" value="{{ quantity }}" min="0">
+                        {% else %}
+                        <span class="text-muted">View Only</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if stock_data %}
+                            {{ stock_data.last_updated.strftime('%Y-%m-%d %H:%M') }}
+                        {% else %}
+                            Never
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if current_user.role in ['admin', 'manager'] %}
+                        <button type="submit" name="update_single" value="{{ product.product_id }}" class="btn btn-sm btn-info">Update</button>
+                        {% else %}
+                        <span class="text-muted">View Only</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% if current_user.role in ['admin', 'manager'] %}
+        <div class="text-right mt-3">
+            <button type="submit" name="update_all" class="btn btn-success">💾 Save All Changes</button>
+        </div>
+        {% endif %}
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const searchInput = document.getElementById("searchInput");
+    searchInput.addEventListener("input", function () {
+        const query = this.value.toLowerCase().trim();
+        const rows = document.querySelectorAll("#inventoryTableBody tr");
+
+        rows.forEach(row => {
+            const name = row.getAttribute("data-name") || "";
+            row.style.display = name.includes(query) ? "" : "none";
+        });
+    });
+});
+</script>
+{% endblock %}

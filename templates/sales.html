@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Sales{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Daily Sales</h2>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                {% for message in messages %}
+                    <p class="mb-0">{{ message }}</p>
+                {% endfor %}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Date Selector & Download -->
+    <form class="form-inline mb-4" method="GET" action="{{ url_for('sales.manage_sales') }}">
+        <label for="date" class="mr-2">Select Date:</label>
+        <input type="date" name="date" id="date" value="{{ selected_date }}" class="form-control mr-2">
+        <button type="submit" class="btn btn-primary mr-2">🔍 View</button>
+        <a href="{{ url_for('sales.download_csv', selected_date=selected_date) }}" class="btn btn-outline-info">⬇️ Download CSV</a>
+    </form>
+
+    <!-- Sales Form -->
+    <form method="POST" action="{{ url_for('sales.update_sales') }}">
+        <input type="hidden" name="sale_date" value="{{ selected_date }}">
+        <table class="table table-bordered table-hover">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Product</th>
+                    <th>Brand</th>
+                    <th>Category</th>
+                    <th>Volume (ml)</th>
+                    <th>Quantity Sold</th>
+                    <th>Total Price ($)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                {% set sale = sales_dict.get(product.product_id) %}
+                <tr>
+                    <td>{{ product.product_name }}</td>
+                    <td>{{ product.brand.brand_name }}</td>
+                    <td>{{ product.category.category_name }}</td>
+                    <td>{{ product.volume.volume_ml }}</td>
+                    <td>
+                        <input type="number" name="quantity_{{ product.product_id }}" class="form-control" min="0"
+                               value="{{ sale.quantity_sold if sale else 0 }}">
+                    </td>
+                    <td>
+                        {{ "%.2f" | format(sale.total_price if sale else 0.00) }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="text-right">
+            <button type="submit" class="btn btn-success">💾 Save Sales</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

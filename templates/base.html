@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}My Application{% endblock %}</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: #343a40;
+            padding-top: 20px;
+            position: fixed;
+            height: 100%;
+            transition: width 0.3s;
+        }
+        .sidebar h4 {
+            color: #ffffff;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .nav-link {
+            color: #ffffff;
+            padding: 10px 15px;
+            transition: background-color 0.3s;
+        }
+        .nav-link:hover {
+            background-color: #495057;
+            border-radius: 5px;
+        }
+        .nav-link.active {
+            background-color: #007bff;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .content {
+            margin-left: 250px;
+            padding: 20px;
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h4>Menu</h4>
+        <ul class="nav flex-column">
+            <!-- Inside your <ul class="nav flex-column"> -->
+            <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">Dashboard</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'inventory.inventory' %}active{% endif %}" href="{{ url_for('inventory.inventory') }}">Inventory</a>
+            </li>
+            {% if current_user.is_authenticated and current_user.role in ['admin', 'manager'] %}
+            <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'sales.manage_sales' %}active{% endif %}" href="{{ url_for('sales.manage_sales') }}">Sales</a>
+            </li>
+            {% endif %}
+            <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'reports' %}active{% endif %}" href="#">Reports</a>
+            </li>
+            {% if current_user.is_authenticated and current_user.role == 'admin' %}
+            <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'admin_inventory.manage_products' %}active{% endif %}" href="{{ url_for('admin_inventory.manage_products') }}">Manage Products</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'manage_users' %}active{% endif %}" href="{{ url_for('manage_users') }}">Manage Users</a>
+            </li>
+            {% endif %}
+            <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'auth.profile' %}active{% endif %}" href="{{ url_for('auth.profile') }}">Profile</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="content">
+        {% block content %}{% endblock %}
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

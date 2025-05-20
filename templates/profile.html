@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">Profile</h1>
+    <form action="{{ url_for('auth.profile') }}" method="post" class="mb-4">
+        <div class="form-group">
+            <label for="name">Name:</label>
+            <input type="text" class="form-control" id="name" name="name" value="{{ user.name }}" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Update Profile</button>
+    </form>
+
+    <hr>
+
+    <h2 class="mt-4">Security</h2>
+    <a href="{{ url_for('auth.change_password') }}" class="btn btn-warning mb-3">Change Password</a>
+
+    <h3>Two-Factor Authentication</h3>
+    {% if user.otp_secret %}
+    <p>2FA is currently enabled for your account.</p>
+    <form action="{{ url_for('auth.profile') }}" method="post">
+        <input type="hidden" name="disable_2fa" value="true">
+        <button type="submit" class="btn btn-danger">Disable 2FA</button>
+    </form>
+    {% else %}
+    <p>2FA is not enabled. Enhance your account security by setting up 2FA.</p>
+    <a href="{{ url_for('auth.setup_2fa') }}" class="btn btn-secondary">Set Up 2FA</a>
+    {% endif %}
+</div>
+{% endblock %} 

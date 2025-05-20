@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Bar Inventory System</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f4f4f4; /* Light background color */
+            font-family: Arial, sans-serif;
+        }
+        .hero {
+            background-color: #007bff; /* Primary color for the hero section */
+            color: white;
+            padding: 100px 0; /* Padding for the hero section */
+            text-align: center;
+        }
+        .hero h1 {
+            font-size: 3rem; /* Large heading */
+            margin-bottom: 20px; /* Space below the heading */
+        }
+        .hero p {
+            font-size: 1.25rem; /* Medium paragraph */
+            margin-bottom: 40px; /* Space below the paragraph */
+        }
+        .btn-custom {
+            background-color: #ffffff; /* White background for buttons */
+            color: #007bff; /* Primary color for text */
+            border: 2px solid #007bff; /* Border color */
+            transition: background-color 0.3s, color 0.3s; /* Smooth transition */
+        }
+        .btn-custom:hover {
+            background-color: #007bff; /* Change background on hover */
+            color: white; /* Change text color on hover */
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <div class="container">
+            <h1>Welcome to the Bar Inventory System</h1>
+            <p>Manage your bar inventory efficiently and effectively.</p>
+            <a href="{{ url_for('auth.login') }}" class="btn btn-custom btn-lg">Login</a>
+            <a href="{{ url_for('auth.register') }}" class="btn btn-custom btn-lg">Register</a>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html> 
